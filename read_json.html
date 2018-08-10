@@ -1,0 +1,194 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+/* Create two equal columns that floats next to each other */
+.leftcolumn {
+    float: left;
+    width: 20%;
+    padding: 10px;
+    height: 500px; /* Should be removed. Only for demonstration */
+}
+.column {
+    float: left;
+    width: 80%;
+    padding: 10px;
+    height: 500px; /* Should be removed. Only for demonstration */
+}
+
+.btn-group button {
+    background-color: #4CAF50; /* Green background */
+    border: 1px solid green; /* Green border */
+    color: white; /* White text */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 50%; /* Set a width if needed */
+    display: block; /* Make the buttons appear below each other */
+}
+
+.btn-group button:not(:last-child) {
+    border-bottom: none; /* Prevent double borders */
+}
+
+/* Add a background color on hover */
+.btn-group button:hover {
+    background-color: #3e8e41;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+</style>
+
+<meta charset="UTF-8">
+<script>
+
+var chart = null;
+
+var dps = [];
+
+window.onload = function() {
+
+google();
+
+}
+
+function create_chart(ws_stock)
+{
+chart = new CanvasJS.Chart("chartContainer", {
+	animationEnabled: true,
+	exportEnabled: true,
+	title: {
+		text: ws_stock+" Stock Price"
+	},
+	axisX: {
+		valueFormatString: "DD MMM YYYY",
+		intervalType: "month"
+	},
+	axisY: {
+		title: "Price",
+		includeZero: false,
+		prefix: "$"
+	},
+	data: [{
+		type: "candlestick",
+		name: ws_stock+" Stock Price",
+		risingColor: "green",
+		color: "red",
+		showInLegend: true,
+		yValueFormatString: "$##0.00",
+		xValueType: "dateTime",
+		dataPoints: dps
+	}]
+});
+}
+
+function google() {
+   dps = [];
+
+   create_chart("Google");
+   $.getJSON("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=GOOGL&apikey=KOOP0G6C9B8MOM3R", callback);
+}
+
+function intel() {
+   dps = [];
+
+   create_chart("Intel");
+   $.getJSON("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=INTC&apikey=KOOP0G6C9B8MOM3R", callback);
+}
+
+function sony() {
+   dps = [];
+
+   create_chart("Sony");
+   $.getJSON("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SNE&apikey=KOOP0G6C9B8MOM3R", callback);
+}
+
+function apple() {
+   dps = [];
+
+   create_chart("Apple");
+   $.getJSON("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=KOOP0G6C9B8MOM3R", callback);
+}
+function amazon() {
+   dps = [];
+
+   create_chart("Amazon");
+   $.getJSON("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AMZN&apikey=KOOP0G6C9B8MOM3R", callback);
+}
+function callback(result) {
+	ws_exit_loop = 0;
+	for (var lvl1_key in result) 
+	{
+		if (result.hasOwnProperty(lvl1_key)) 
+		{
+			//console.log(lvl1_key + " -> " + result[lvl1_key]);
+			
+			if (lvl1_key != "Meta Data")
+			{  
+			   sec_lvl_obj = result[lvl1_key];
+			   for (var lvl2_key in sec_lvl_obj) 
+			   {
+			       ws_exit_loop = ws_exit_loop + 1;
+			   
+				   if (sec_lvl_obj.hasOwnProperty(lvl2_key)) 
+				   {
+					   ws_date = Number(new Date(lvl2_key+"T00:00:00+0800"));
+					   
+					   thrd_lvl_obj = sec_lvl_obj[lvl2_key];
+					   ws_lvl3_cnt = 0
+					   var y_value = [];
+					   for (var lvl3_key in thrd_lvl_obj) 
+					   {
+						   //Get rid of volume field
+						   if (ws_lvl3_cnt == 4)
+						   {
+						      break;
+						   }
+						   if (thrd_lvl_obj.hasOwnProperty(lvl3_key)) 
+						   {
+							   y_value.push(parseInt(thrd_lvl_obj[lvl3_key]));
+						   }	
+						   dps.push({x:ws_date, y: y_value});
+						   ws_lvl3_cnt = ws_lvl3_cnt + 1
+					   }
+				   }
+			   }
+			}   
+		}
+	}
+	chart.render();
+}
+
+</script>
+	
+</head>
+			  	 	   
+<body>
+   <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+   <script src="canvasjs.min.js"></script>
+
+<div class="row">
+  <div class="leftcolumn" >
+    <div class="btn-group">
+      <button onclick="google()" >Google</button>
+      <button onclick="intel()">Intel</button>
+      <button onclick="sony()">Sony</button>
+	  <button onclick="apple()">Apple</button>
+	  <button onclick="amazon()">Amazon</button>
+    </div>
+  </div>
+  <div class="column" >
+     <div id="chartContainer" style="height: 370px; max-width: 920px; "></div>
+  </div>
+</div>
+
+</body>
+</html>
